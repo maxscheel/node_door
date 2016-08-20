@@ -16,9 +16,9 @@ var pin = new Gpio(5, 'high')
 
 //Set variables for strings
 //State of door
-String state;
+var state;
 //What are we doing with door?
-String action;
+var action;
  
 // store our test messages to display (if needed)
 //var open = "Open sesame"

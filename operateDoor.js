@@ -1,4 +1,4 @@
-module.exports.submit = operateDoor
+module.exports = operateDoor
 
 //reset pin that actuates opener to high state after required time has elapsed
 function resetOpener() {

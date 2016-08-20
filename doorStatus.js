@@ -1,5 +1,5 @@
 // not sure about the "submit" bit
-module.exports.submit = doorStatus
+module.exports = doorStatus
 
 function doorStatus() {
   var open = new Gpio(6, 'in'); 
