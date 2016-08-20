@@ -2,11 +2,11 @@
 
 // import our modules 
 var http         = require('http')
-var Router       = require('router')
 var finalhandler = require('finalhandler')
 var Gpio = require('chip-gpio').Gpio;
 var doorStatus = require('doorStatus')
 var operateDoor = require('operateDoor')
+var Router       = require('router')
 
 // var bodyParser   = require('body-parser')
 
@@ -40,51 +40,47 @@ router.get('/status', function (req, res) {
 //  2. Open
 //  3. Unknown (opening, closing or something is broken)
 //then print in following line
-  doorStatus(error, state) {
-    if (error) return console.error('Uhoh, there was an error retreiving door state for status update', error)
-      // otherwise, continue on and use `state` in your code
-    }
+  doorStatus() 
   res.end(state + '\n')
 })
 
 //handle `PUT` requests to `/action` (eg, toggle door state by manipulating pin state)
 router.put('/action/:option', function (req, res) {
   //call function to assess status and store value
-  doorStatus(error, state) {
-    if (error) return console.error('Uhoh, there was an error retreiving door state for opening door', error)
-        // otherwise, continue on and use `state` in your code
-  }  
-  if (option == "open") {
-    if (state == open) {
-      System.out.println("Door already open, not opening")
+  doorStatus()
+  if (option == "open" || "close") {
+    if (option == "open") {
+      if (state == open) {
+        System.out.println("Door already open, not opening")
+      }
+      else if (state == closed) {
+        operateDoor
+        // set action variable to "closing" for open and vice versa
+        action = "opening"
+      }
+      else {
+        //Status must be unknown or somthing has fucked up
+        action ="check_door"
+      }
     }
-    else if (state == closed) {
-      operateDoor
-      // set action variable to "closing" for open and vice versa
-      action = "opening";
+    else if (option == "close") {
+      if (state == closed) {
+        System.out.println("Door already closed, not closing")
+      }
+      else if (state == open) {
+        operateDoor
+        // set action variable to "closing" for open and vice versa
+        action = "closing"
+      }
+      else {
+        //Status must be unknown or somthing has fucked up
+        action ="check_door"
+      }
     }
-    else {
-      //Status must be unknown or somthing has fucked up
-      action ="check_door";
-    }
-  }
-  else if (option == "close") {
-    if (state == closed) {
-      System.out.println("Door already closed, not closing")
-    }
-    else if (state == open) {
-      operateDoor
-      // set action variable to "closing" for open and vice versa
-      action = "closing";
-    }
-    else {
-      //Status must be unknown or somthing has fucked up
-      action ="check_door";
-    }
-  }
   res.statusCode = 200
   res.setHandler('Content-Type', 'text/plain; charset=utf-8')
   res.end(action + '\n')
+  }
   else {
     res.statusCode = 400
     res.setHeader('Content-Type', 'text/plain; charset=utf-8')
