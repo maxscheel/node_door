@@ -4,8 +4,8 @@
 var http         = require('http')
 var finalhandler = require('finalhandler')
 var Gpio = require('chip-gpio').Gpio;
-var doorStatus = require('doorStatus')
-var operateDoor = require('operateDoor')
+var doorStatus = require('./doorStatus')
+var operateDoor = require('./operateDoor')
 var Router       = require('router')
 
 // var bodyParser   = require('body-parser')
@@ -19,6 +19,7 @@ var pin = new Gpio(5, 'high')
 var state;
 //What are we doing with door?
 var action;
+var option;
  
 // store our test messages to display (if needed)
 //var open = "Open sesame"
@@ -45,7 +46,7 @@ router.get('/status', function (req, res) {
 })
 
 //handle `PUT` requests to `/action` (eg, toggle door state by manipulating pin state)
-router.put('/action/:option', function (req, res) {
+router.get('/action/:option', function (req, res) {
   //call function to assess status and store value
   doorStatus()
   if (option == "open" || "close") {
@@ -78,7 +79,7 @@ router.put('/action/:option', function (req, res) {
       }
     }
   res.statusCode = 200
-  res.setHandler('Content-Type', 'text/plain; charset=utf-8')
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
   res.end(action + '\n')
   }
   else {
