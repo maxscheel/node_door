@@ -4,15 +4,16 @@
 var http         = require('http')
 var finalhandler = require('finalhandler')
 var Gpio = require('chip-gpio').Gpio;
-var doorStatus = require('./doorStatus')
+//var doorStatus = require('./doorStatus')
 var operateDoor = require('./operateDoor')
 var Router       = require('router')
-
-// var bodyParser   = require('body-parser')
 
 //store pin for toggling door - check if it needs to be pulled down (high) or pulled up (low) and declare here in case it 
 // drops each time function is run
 var pin = new Gpio(5, 'high')
+var open_reed = new Gpio(6, 'in');
+var closed_reed = new Gpio(7, 'in');
+var state;
 
 //Set variables for strings
 //State of door
@@ -20,6 +21,22 @@ var state;
 //What are we doing with door?
 var action;
 var option;
+
+
+
+//function for assessing door status
+var getDoorStatus = function( callback ) {
+  if (open_reed.read() == 1 && closed_reed.read() == 0) {
+    state = "doorOpen";
+  }
+  else if (open_reed.read() == 0 && closed_reed.read() == 1) {
+    state = "doorClosed";
+  }
+  else {
+    state = "unknown";
+  }
+  callback( state );
+};
  
 // store our test messages to display (if needed)
 //var open = "Open sesame"
@@ -36,58 +53,70 @@ var server = http.createServer(function onRequest(req, res) {
 router.get('/status', function (req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-//call function that reads GPIO status of pins to form either:
-//  1. closed
-//  2. Open
-//  3. Unknown (opening, closing or something is broken)
-//then print in following line
+  //doorStatus() returns variable of "state")
   doorStatus() 
   res.end(state + '\n')
 })
 
-//handle `PUT` requests to `/action` (eg, toggle door state by manipulating pin state)
-router.get('/action/:option', function (req, res) {
+//make another router with our options for open
+var closing = Router()
+
+//mount our new router to a route 
+router.use('/action/close', closing)
+
+
+//handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
+closing.get('/', function (req, res) {
   //call function to assess status and store value
-  doorStatus()
-  if (option == "open" || "close") {
-    if (option == "open") {
-      if (state == open) {
-        System.out.println("Door already open, not opening")
-      }
-      else if (state == closed) {
-        operateDoor
-        // set action variable to "closing" for open and vice versa
-        action = "opening"
-      }
-      else {
-        //Status must be unknown or somthing has fucked up
-        action ="check_door"
-      }
+//  doorStatus()
+    if (getDoorStatus(state) == doorOpen) {
+      //populate action varialbe for diags
+      action = "closing"
     }
-    else if (option == "close") {
-      if (state == closed) {
-        System.out.println("Door already closed, not closing")
-      }
-      else if (state == open) {
-        operateDoor
-        // set action variable to "closing" for open and vice versa
-        action = "closing"
-      }
-      else {
-        //Status must be unknown or somthing has fucked up
-        action ="check_door"
-      }
+    else if (getDoorStatus(state) == doorClosed) {
+      operateDoor()
+      //populate action varialbe for diags
+      action = "Door already closed, not closing"
+    }
+    else {
+      //Status must be unknown or somthing has fucked up
+      action ="check_door"
     }
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
   res.end(action + '\n')
-  }
-  else {
-    res.statusCode = 400
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end('Invalid API Syntax\n')
-  }
+  doorStatus()
 })
+
+//make another router with our options for opening
+var opening = Router()
+ 
+//mount our new router to a route 
+router.use('/action/open', opening)
+  
+ 
+//handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
+opening.get('/', function (req, res) {
+  //call function to assess status and store value
+  doorStatus()
+    if (getDoorStatus(state) == doorClosed) {
+      operateDoor()
+      //populate action varialbe for diags
+      action = "opening"
+    }
+    else if (getDoorStatus(state) == doorOpen) {
+      //populate action varialbe for diags
+      action = "Door already open, not opening"
+    }
+    else {
+      //Status must be unknown or somthing has fucked up
+      action ="check_door"
+    }
+  res.statusCode = 200
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  res.end(action + '\n')
+ })
+
 
 // make our http server listen to connections 
 server.listen(8080)
