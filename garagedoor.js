@@ -31,7 +31,7 @@ function resetOpener() {
 //pull pin down for 100 milliseconds to kick door
 function operateDoor() {
   pin.write(0)
-  setTimeout(resetOpener, 100)
+  setTimeout(resetOpener, 1000)
 }
 
 //function for assessing door status
