@@ -25,18 +25,17 @@ var option;
 
 
 //function for assessing door status
-var getDoorStatus = function( callback ) {
+var getDoorStatus = function() {
   if (open_reed.read() == 1 && closed_reed.read() == 0) {
-    state = "doorOpen";
+    state = "doorOpen"
   }
   else if (open_reed.read() == 0 && closed_reed.read() == 1) {
-    state = "doorClosed";
+    state = "doorClosed"
   }
   else {
-    state = "unknown";
+    state = "unknown"
   }
-  callback( state );
-};
+}
  
 // store our test messages to display (if needed)
 //var open = "Open sesame"
@@ -68,12 +67,12 @@ router.use('/action/close', closing)
 //handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
 closing.get('/', function (req, res) {
   //call function to assess status and store value
-//  doorStatus()
-    if (getDoorStatus(state) == doorOpen) {
+  getDoorStatus
+    if (state == "doorOpen") {
       //populate action varialbe for diags
       action = "closing"
     }
-    else if (getDoorStatus(state) == doorClosed) {
+    else if (state == "doorClosed") {
       operateDoor()
       //populate action varialbe for diags
       action = "Door already closed, not closing"
@@ -98,13 +97,13 @@ router.use('/action/open', opening)
 //handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
 opening.get('/', function (req, res) {
   //call function to assess status and store value
-  doorStatus()
-    if (getDoorStatus(state) == doorClosed) {
+  getDoorStatus
+    if (state == "doorClosed") {
       operateDoor()
       //populate action varialbe for diags
       action = "opening"
     }
-    else if (getDoorStatus(state) == doorOpen) {
+    else if (state == "doorOpen") {
       //populate action varialbe for diags
       action = "Door already open, not opening"
     }
