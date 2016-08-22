@@ -5,12 +5,12 @@ var http         = require('http')
 var finalhandler = require('finalhandler')
 var Gpio = require('chip-gpio').Gpio;
 //var doorStatus = require('./doorStatus')
-var operateDoor = require('./operateDoor')
+//var operateDoor = require('./operateDoor')
 var Router       = require('router')
 
 //store pin for toggling door - check if it needs to be pulled down (high) or pulled up (low) and declare here in case it 
 // drops each time function is run
-var pin = new Gpio(5, 'high')
+var pin = new Gpio(5, 'high');
 var open_reed = new Gpio(6, 'in');
 var closed_reed = new Gpio(7, 'in');
 var state;
@@ -22,10 +22,20 @@ var state;
 var action;
 var option;
 
+//functions for operating door
+//reset pin that actuates opener to high state after required time has elapsed
+function resetOpener() {
+  pin.write(1)
+}
 
+//pull pin down for 100 milliseconds to kick door
+function operateDoor() {
+  pin.write(0)
+  setTimeout(resetOpener, 100)
+}
 
 //function for assessing door status
-var getDoorStatus = function() {
+function getDoorStatus() {
   if (open_reed.read() == 1 && closed_reed.read() == 0) {
     state = "doorOpen"
   }
@@ -52,8 +62,7 @@ var server = http.createServer(function onRequest(req, res) {
 router.get('/status', function (req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  //doorStatus() returns variable of "state")
-  doorStatus() 
+  getDoorStatus()
   res.end(state + '\n')
 })
 
@@ -67,7 +76,7 @@ router.use('/action/close', closing)
 //handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
 closing.get('/', function (req, res) {
   //call function to assess status and store value
-  getDoorStatus
+  getDoorStatus()
     if (state == "doorOpen") {
       //populate action varialbe for diags
       action = "closing"
@@ -84,7 +93,6 @@ closing.get('/', function (req, res) {
   res.statusCode = 200
   res.setHeader('Content-Type', 'text/plain; charset=utf-8')
   res.end(action + '\n')
-  doorStatus()
 })
 
 //make another router with our options for opening
@@ -97,7 +105,7 @@ router.use('/action/open', opening)
 //handle `GET` requests to `/action/close` (eg, toggle door state by manipulating pin state)
 opening.get('/', function (req, res) {
   //call function to assess status and store value
-  getDoorStatus
+  getDoorStatus()
     if (state == "doorClosed") {
       operateDoor()
       //populate action varialbe for diags
