@@ -1,0 +1,4 @@
+# see https://github.com/openhab/openhab/wiki/Transformations
+number door_state {http"<[http://chip:8080/status:5000:JS(getValue.js)]"}
+switch door_close {http">[*:GET:http://chip:8080/action/close]"}
+switch door_open {http">[*:GET:http://chip:8080/action/open]"}

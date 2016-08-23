@@ -4,13 +4,11 @@
 var http         = require('http')
 var finalhandler = require('finalhandler')
 var Gpio = require('chip-gpio').Gpio;
-//var doorStatus = require('./doorStatus')
-//var operateDoor = require('./operateDoor')
 var Router       = require('router')
 
 //store pin for toggling door - check if it needs to be pulled down (high) or pulled up (low) and declare here in case it 
 // drops each time function is run
-var pin = new Gpio(5, 'high');
+var pin = new Gpio(5, 'low');
 var open_reed = new Gpio(6, 'in');
 var closed_reed = new Gpio(7, 'in');
 var state;
@@ -20,17 +18,16 @@ var state;
 var state;
 //What are we doing with door?
 var action;
-var option;
 
 //functions for operating door
 //reset pin that actuates opener to high state after required time has elapsed
 function resetOpener() {
-  pin.write(1)
+  pin.write(0)
 }
 
 //pull pin down for 100 milliseconds to kick door
 function operateDoor() {
-  pin.write(0)
+  pin.write(1)
   setTimeout(resetOpener, 1000)
 }
 
